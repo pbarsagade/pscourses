@@ -7,9 +7,12 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using restapi3.Entities;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using RestAPICore2.Entities;
+using RestAPICore2.Services;
 
-namespace restapi3
+namespace RestAPICore2
 {
     public class Startup
     {
@@ -24,32 +27,30 @@ namespace restapi3
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddMvc();
-            string conString = Configuration["ConnectionStrings:DefaultConnection"];
-            services.AddDbContext<DataContext>(options =>
-            options.UseSqlServer(conString));
+            var connectionString = Configuration["connectionStrings:libraryDBConnectionString"];
+            services.AddDbContext<LibraryContext>(o => o.UseSqlServer(connectionString));
+
+            // register the repository
+            services.AddScoped<ILibraryRepository, LibraryRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, DataContext dbContext)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory, LibraryContext libraryContext)
         {
+            loggerFactory.AddConsole();
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                dbContext.EnsureSeedDataForContext();
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                app.UseExceptionHandler();
             }
 
-            app.UseStaticFiles();
+            libraryContext.EnsureSeedDataForContext();
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+            app.UseMvc();
         }
     }
 }

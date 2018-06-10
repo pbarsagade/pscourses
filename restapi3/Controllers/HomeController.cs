@@ -16,6 +16,7 @@ namespace restapi3.Controllers
 
         public IActionResult Index()
         {
+            int c = context.Responses.Count();
             return View();
         }
 
