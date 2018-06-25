@@ -60,6 +60,8 @@ namespace WebAPI
                 .ForMember(dest => dest.Age, opt => opt.MapFrom(src => src.DateOfBirth.GetCurrentAge()));
 
                 cfg.CreateMap<Data.Book, Models.BookDto>();
+                cfg.CreateMap<Models.NewAuthorDto, Data.Author>();
+                cfg.CreateMap<Models.NewBookDto, Data.Book>();
             });
             app.UseMvc();
         }

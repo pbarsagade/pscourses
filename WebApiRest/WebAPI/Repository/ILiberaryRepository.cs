@@ -10,5 +10,11 @@ namespace WebAPI.Repository
         bool AuthorExists(int authorId);
         IEnumerable<Book> GetBooksForAuthor(int authorId);
         Book GetBookForAuthor(int authorId, int bookId);
+        void AddAuthor(Author author);
+        bool Save();
+        void AddBookForAuthor(int authorId, Book book);
+        IEnumerable<Author> GetAuthors(IEnumerable<int> authorIds);
+        void DeleteBook(Book book);
+        void DeleteAuthor(Author author);
     }
 }
