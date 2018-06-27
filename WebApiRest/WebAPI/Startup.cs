@@ -62,6 +62,8 @@ namespace WebAPI
                 cfg.CreateMap<Data.Book, Models.BookDto>();
                 cfg.CreateMap<Models.NewAuthorDto, Data.Author>();
                 cfg.CreateMap<Models.NewBookDto, Data.Book>();
+                cfg.CreateMap<Models.EditBookDto, Data.Book>();
+                cfg.CreateMap<Data.Book, Models.EditBookDto>();
             });
             app.UseMvc();
         }

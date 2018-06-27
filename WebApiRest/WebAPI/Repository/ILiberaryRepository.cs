@@ -16,5 +16,7 @@ namespace WebAPI.Repository
         IEnumerable<Author> GetAuthors(IEnumerable<int> authorIds);
         void DeleteBook(Book book);
         void DeleteAuthor(Author author);
+        void UpdateBookForAuthor(Book book);
+
     }
 }

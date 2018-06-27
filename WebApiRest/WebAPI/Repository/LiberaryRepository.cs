@@ -78,5 +78,11 @@ namespace WebAPI.Repository
         {
             return (this.context.SaveChanges() >= 0);
         }
+
+        public void UpdateBookForAuthor(Book book)
+        {
+            // Method not implemented as EF can handle with db context.
+            // But it is  good practice to add update method in repository to maintain consistency
+        }
     }
 }
