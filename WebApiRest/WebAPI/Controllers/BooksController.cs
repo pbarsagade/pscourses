@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using WebAPI.Helper;
 using WebAPI.Models;
 using WebAPI.Repository;
 
@@ -31,7 +32,7 @@ namespace WebAPI.Controllers
             return Ok(booksDto);
         }
 
-        [HttpGet("{bookId}",Name ="GetBook")]
+        [HttpGet("{bookId}", Name = "GetBook")]
         public IActionResult GetBookForAuthor(int authorId, int bookId)
         {
             if (!this.repository.AuthorExists(authorId))
@@ -51,6 +52,14 @@ namespace WebAPI.Controllers
             if (book == null)
                 return BadRequest();
 
+            if (book.Title.Equals(book.Description))
+                ModelState.AddModelError(nameof(BookDto), "Title and description of book can't be same");
+
+            if (!ModelState.IsValid)
+            {
+                return new UnProcessableEntityObjectResult(ModelState);
+            }
+
             var bookEntity = Mapper.Map<Data.Book>(book);
             this.repository.AddBookForAuthor(authorId, bookEntity);
 
@@ -59,7 +68,7 @@ namespace WebAPI.Controllers
 
             var newBook = Mapper.Map<BookDto>(bookEntity);
 
-            return CreatedAtRoute("GetBook", new {authorId = authorId, bookId = newBook.Id }, newBook);
+            return CreatedAtRoute("GetBook", new { authorId = authorId, bookId = newBook.Id }, newBook);
         }
 
         [HttpDelete("{id}")]
@@ -138,9 +147,16 @@ namespace WebAPI.Controllers
 
             var bookToPatch = Mapper.Map<EditBookDto>(bookForAuthorFromRepo);
 
-            patchDoc.ApplyTo(bookToPatch);
+            patchDoc.ApplyTo(bookToPatch,ModelState);
+            if (bookToPatch.Description == bookToPatch.Title)
+            {
+                ModelState.AddModelError(nameof(EditBookDto),
+                    "The provided description should be different from the title.");
+            }
 
-            // patchDoc.ApplyTo(bookToPatch);
+            TryValidateModel(bookToPatch);
+            if (!ModelState.IsValid)
+                return new UnProcessableEntityObjectResult(ModelState);
 
             Mapper.Map(bookToPatch, bookForAuthorFromRepo);
 
