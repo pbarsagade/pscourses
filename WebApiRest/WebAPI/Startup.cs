@@ -8,6 +8,8 @@ using WebAPI.Repository;
 using WebAPI.Helper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc.Formatters;
+using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Diagnostics;
 
 namespace WebAPI
 {
@@ -35,7 +37,7 @@ namespace WebAPI
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, DataContext context)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, DataContext context,ILoggerFactory loggerFactory)
         {
             if (env.IsDevelopment())
             {
@@ -48,6 +50,14 @@ namespace WebAPI
                 {
                     appBuilder.Run(async ctx =>
                     {
+                        var exceptionHandlerFeature = ctx.Features.Get<IExceptionHandlerFeature>();
+                        if (exceptionHandlerFeature != null)
+                        {
+                            var logger = loggerFactory.CreateLogger("Global exception logger");
+                            logger.LogError(500,
+                                exceptionHandlerFeature.Error,
+                                exceptionHandlerFeature.Error.Message);
+                        }
                         ctx.Response.StatusCode = 500;
                         await ctx.Response.WriteAsync("An unexpected fault happened. Try again later");
                     });

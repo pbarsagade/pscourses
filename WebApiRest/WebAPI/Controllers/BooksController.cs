@@ -6,6 +6,7 @@ using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using WebAPI.Helper;
 using WebAPI.Models;
 using WebAPI.Repository;
@@ -15,10 +16,12 @@ namespace WebAPI.Controllers
     [Route("api/authors/{authorId}/books")]
     public class BooksController : Controller
     {
+        private readonly ILogger<BooksController> logger;
         private readonly ILiberaryRepository repository;
 
-        public BooksController(ILiberaryRepository repository)
+        public BooksController(ILiberaryRepository repository, ILogger<BooksController> logger)
         {
+            this.logger = logger;
             this.repository = repository;
         }
 
@@ -92,6 +95,8 @@ namespace WebAPI.Controllers
                 throw new Exception($"Deleting book {id} for author {authorId} failed on save.");
             }
 
+            logger.LogInformation(100, $"Book {id} Deleted for author {authorId}");
+
             return NoContent();
         }
 
@@ -146,8 +151,8 @@ namespace WebAPI.Controllers
             }
 
             var bookToPatch = Mapper.Map<EditBookDto>(bookForAuthorFromRepo);
-
-            patchDoc.ApplyTo(bookToPatch,ModelState);
+            patchDoc.ApplyTo(bookToPatch);
+            // patchDoc.ApplyTo(bookToPatch,ModelState);
             if (bookToPatch.Description == bookToPatch.Title)
             {
                 ModelState.AddModelError(nameof(EditBookDto),
