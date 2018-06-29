@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using WebAPI.Data;
+using WebAPI.Helper;
 
 namespace WebAPI.Repository
 {
     public interface ILiberaryRepository
     {
-        IEnumerable<Author> GetAuthors();
+        PagedList<Author> GetAuthors(AuthorsResourceParameters parameters);
         Author GetAuthor(int authorId);
         bool AuthorExists(int authorId);
         IEnumerable<Book> GetBooksForAuthor(int authorId);
