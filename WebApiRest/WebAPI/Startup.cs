@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Newtonsoft.Json.Serialization;
 
 namespace WebAPI
 {
@@ -32,6 +33,9 @@ namespace WebAPI
             {
                 setupAction.ReturnHttpNotAcceptable = true;
                 setupAction.OutputFormatters.Add(new XmlDataContractSerializerOutputFormatter());
+            }).AddJsonOptions(options =>
+            {
+                options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             });
 
             string conString = Configuration["ConnectionStrings:DefaultConnection"];
@@ -40,10 +44,14 @@ namespace WebAPI
             services.AddScoped<ILiberaryRepository, LiberaryRepository>();
 
             services.AddSingleton<IActionContextAccessor, ActionContextAccessor>();
-            services.AddScoped<IUrlHelper, UrlHelper>(implementationFactory=> {
+
+            services.AddScoped<IUrlHelper, UrlHelper>(implementationFactory =>
+            {
                 var actionContext = implementationFactory.GetService<IActionContextAccessor>().ActionContext;
                 return new UrlHelper(actionContext);
             });
+
+            services.AddTransient<ITypeHelperService, TypeHelperService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -25,5 +25,6 @@ namespace WebAPI.Helper
 
         public string Genre { get; set; }
         public string SearchQuery { get; set; }
+        public string Fields { get; set; }
     }
 }

@@ -16,12 +16,15 @@ namespace WebAPI.Controllers
     {
         private readonly ILiberaryRepository repository;
         private readonly IUrlHelper urlHelper;
+        private readonly ITypeHelperService typeHelperService;
 
         public AuthorsController(ILiberaryRepository repository,
-            IUrlHelper urlHelper)
+            IUrlHelper urlHelper,
+            ITypeHelperService typeHelperService)
         {
             this.repository = repository;
             this.urlHelper = urlHelper;
+            this.typeHelperService = typeHelperService;
         }
 
         [HttpGet(Name = "GetAuthors")]
@@ -29,6 +32,9 @@ namespace WebAPI.Controllers
         {
             var authors = repository.GetAuthors(resourceParameters);
             IEnumerable<AuthorDto> authorsDto = Mapper.Map<IEnumerable<AuthorDto>>(authors);
+
+            if (!this.typeHelperService.TypeHasProperties<AuthorDto>(resourceParameters.Fields))
+                return BadRequest();
 
             var previousPageLink = authors.HasPrevious ?
             CreateAuthorsResourceUri(resourceParameters,
@@ -51,7 +57,7 @@ namespace WebAPI.Controllers
             Response.Headers.Add("X-Pagination",
                 Newtonsoft.Json.JsonConvert.SerializeObject(paginationMetadata));
 
-            return Ok(authorsDto);
+            return Ok(authorsDto.ShapeData(resourceParameters.Fields));
         }
 
         private string CreateAuthorsResourceUri(
@@ -64,6 +70,7 @@ namespace WebAPI.Controllers
                     return urlHelper.Link("GetAuthors",
                       new
                       {
+                          fields = authorsResourceParameters.Fields,
                           searchQuery = authorsResourceParameters.SearchQuery,
                           genre = authorsResourceParameters.Genre,
                           pageNumber = authorsResourceParameters.PageNumber - 1,
@@ -73,6 +80,7 @@ namespace WebAPI.Controllers
                     return urlHelper.Link("GetAuthors",
                       new
                       {
+                          fields = authorsResourceParameters.Fields,
                           searchQuery = authorsResourceParameters.SearchQuery,
                           genre = authorsResourceParameters.Genre,
                           pageNumber = authorsResourceParameters.PageNumber + 1,
@@ -83,6 +91,7 @@ namespace WebAPI.Controllers
                     return urlHelper.Link("GetAuthors",
                     new
                     {
+                        fields = authorsResourceParameters.Fields,
                         searchQuery = authorsResourceParameters.SearchQuery,
                         genre = authorsResourceParameters.Genre,
                         pageNumber = authorsResourceParameters.PageNumber,
@@ -93,8 +102,11 @@ namespace WebAPI.Controllers
 
 
         [HttpGet("{id}", Name = "GetAuthor")]
-        public IActionResult GetAuthors(int id)
+        public IActionResult GetAuthors(int id, [FromQuery] string fields)
         {
+            if (!this.typeHelperService.TypeHasProperties<AuthorDto>(fields))
+                return BadRequest();
+
             var author = repository.GetAuthor(id);
 
             if (author == null)
@@ -102,7 +114,7 @@ namespace WebAPI.Controllers
 
             AuthorDto authorDto = Mapper.Map<AuthorDto>(author);
 
-            return Ok(authorDto);
+            return Ok(authorDto.ShapeData(fields));
         }
 
 
